@@ -516,34 +516,50 @@ public static function listadoProductos($filtros) {
         extract($filtros);
         //Primero recuperamos los pedidos 
         $sentencia = "SELECT * FROM PEDIDOS";
-        $where = "WHERE 1";
+        $where = " WHERE 1";
         $parametros = array();
         $tiposParametro = "";
         $orderBy = " ORDER BY fecha, id_cliente";
 
         if(isset($filtroId)) {
+         //   echo "<pre>";
+         //   echo "filtroID = ".$filtroId; //TEST
+         //   echo "</pre>";
+            
             $where .= " AND id_cliente = ?";
             $tiposParametro .= "i";
             $parametros[] = &$filtroId; //paso los parámetros por referencia (&) para el bind_param (si no lo hago así dará error).
+            
+          //  echo "<pre>";
+          //  print_r($parametros); //TEST
+          //  echo "</pre>";
         }
 
         if(isset($filtroDesde) && !isset($filtroHasta)) {
             $where .= " AND fecha >= ?";
-            $tiposParametro .= "d";
-            $parametos[] = &$filtroDesde;
+            $tiposParametro .= "s";
+            $parametros[] = &$filtroDesde;
         } else if(!isset($filtroDesde) && isset($filtroHasta)) {
             $where .= " AND fecha <= ?";
-            $tiposParametro .= "d";
-            $parametos[] = &$filtroHasta;
+            $tiposParametro .= "s";
+            $parametros[] = &$filtroHasta;
         } else if(isset($filtroDesde) && isset($filtroHasta)) {
-            $where = " AND fecha BETWEEN ? AND ?";
-            $tiposParametro .= "dd";
-            $parametros[] = $filtroDesde;
-            $parametros[] = $filtroHasta;
+            $where .= " AND fecha BETWEEN ? AND ?";
+            $tiposParametro .= "ss";
+            $parametros[] = &$filtroDesde;
+            $parametros[] = &$filtroHasta;
         }
 
         $sentencia = $sentencia.$where.$orderBy;
 
+        echo "<pre>";
+        print_r($sentencia); //TEST
+        echo "</pre>";
+
+        echo "<pre>";
+        print_r($filtros); //TEST
+        echo "</pre>";
+        
         if(empty($filtros)) {                               //Si no hay filtros, no se aplican las consultas preparadas, ya que call_user_func_array daría error
             if(!$consulta = $mysqli->query($sentencia)) {
                 echo "<br>Error BD: Falló la consulta: (" . $mysqli->errno . ") " . $mysqli->error;
@@ -552,12 +568,32 @@ public static function listadoProductos($filtros) {
                 $resultadoBD = $consulta;
             }
         } else {
-    
+            
+       // echo "<pre>";     
+       // echo $tiposParametro; //TEST
+       // echo "</pre>";
+
         array_unshift($parametros,$tiposParametro);  //añado al principio del array los tipos de parámetro para el bind_param
     
-             $sentenciaPreparada = $mysqli->prepare($sentencia);
-    
+        if($sentenciaPreparada = $mysqli->prepare($sentencia)) {
+            echo "<pre>";
+            echo "BIEN";
+            echo "</pre>";
+        }
+
+       // echo "<pre>";
+       // print_r($sentenciaPreparada); //TEST
+       // echo "</pre>";
+
+        echo "<pre>";     
+        print_r($parametros); //TEST
+        echo "</pre>";
+        //echo "<pre>";     
+        //echo "sentenciaPreparada =" .$sentenciaPreparada; //TEST
+        //echo "</pre>";
+        //call_user_func_array(array($sentenciaPreparada, 'bind_param'), $parametros);
         call_user_func_array(array($sentenciaPreparada, 'bind_param'), $parametros); //utilizo call_user_func_array para llamar a bind_param pasándole el array de parámetros.
+            //$sentenciaPreparada->bind_param();
             $sentenciaPreparada->execute();
             $resultadoBD = $sentenciaPreparada->get_result();
         }
@@ -576,6 +612,28 @@ public static function listadoProductos($filtros) {
             $email_cliente = $resultadoUsuario->fetch_array()[0];
 
             $arrayDatosPedido["email_cliente"] = $email_cliente;
+
+            //creamos un array con las lineas del pedido
+
+            $sentencia = "SELECT id_producto, cantidad, precio_unitario FROM LINEAS WHERE id_pedido = $id ORDER BY num_linea;";
+            $resultadoLineas = $mysqli->query($sentencia);
+            $arrayLineas = array();
+
+            while($filaLinea = $resultadoLineas->fetch_assoc()) {
+                extract($filaLinea);
+                //Consulto el nombre del producto
+                $sentencia = "SELECT nombre FROM PRODUCTOS WHERE id = $id_producto;";
+                $resultadoNombreProducto = $mysqli->query($sentencia);
+                $filaNombreProd = $resultadoNombreProducto->fetch_assoc();
+                $nombreProducto = $filaNombreProd["nombre"];
+                $linea = array();
+                $linea["nombreProducto"] = $nombreProducto;
+                $linea["cantidad"] = $cantidad;
+                $linea["precio_unitario"] = $precio_unitario;
+                $arrayLineas[] = $linea;
+            }
+
+            $arrayDatosPedido["arrayLineas"] = $arrayLineas;
 
 
 

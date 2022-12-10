@@ -125,6 +125,7 @@ const VIEW_TABLA_CARRITO_AJAX = "../../app/view/tablaCarrito.php";
     const PUBLIC_JS_EDITAR_CATEGORIAS = "public/js/editarCategorias.js";
     const PUBLIC_JS_DETALLES_CARRITO = "public/js/detallesCarrito.js";
     const PUBLIC_JS_CONFIRMAR_COMPRA = "public/js/confirmarCompra.js";
+    const PUBLIC_JS_LISTADO_PEDIDOS = "public/js/listadoPedidos.js";
 
     //Cookies and XML library
     const PUBLIC_JS_COOKIES = "public/js/cookiesandxml.js";

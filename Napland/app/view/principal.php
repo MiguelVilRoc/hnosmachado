@@ -1,5 +1,5 @@
 <?php 
-require_once Path::VIEW_CABECERA;
+include_once Path::VIEW_CABECERA;
 ?>
 
 
@@ -25,4 +25,4 @@ require_once Path::VIEW_CABECERA;
 
     
     
-    <?php require_once Path::VIEW_PIE; ?>
+    <?php include_once Path::VIEW_PIE; ?>
