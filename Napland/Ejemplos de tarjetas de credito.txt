@@ -1,4 +1,0 @@
-Ejemplos de tarjeta:
-American Ex: 3759 876543 21001
-Mastercard: 5411 2222 3333 4444
-Visa: 4012 8888 8888 1881
